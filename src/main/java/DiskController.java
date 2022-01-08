@@ -1,16 +1,10 @@
-import java.util.ArrayDeque;
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Deque;
-import java.util.List;
+import java.util.Comparator;
 import java.util.PriorityQueue;
-import java.util.Queue;
-import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 
 public class DiskController {
 
-	class Job implements Comparable<Job>{
+	class Job implements Comparable<Job> {
 		private int requestTime;
 		private int jobRunning;
 		Job(int [] jobTime ){
@@ -26,10 +20,12 @@ public class DiskController {
 			return requestTime;
 		}
 
-
 		@Override
 		public int compareTo(Job o) {
-			return this.getRequestTime() - o.getRequestTime();
+			if (this.getJobRunning() == o.getJobRunning()) {
+				return this.getRequestTime() - o.getRequestTime();
+			}
+			return this.getJobRunning() - o.getJobRunning();
 		}
 
 		@Override
@@ -47,33 +43,35 @@ public class DiskController {
 		int jobSize = jobs.length;
 		int runTime = 0;
 		int currentTime = 0;
+		PriorityQueue<Job> run = new PriorityQueue<>();
+		PriorityQueue<Job> wait = new PriorityQueue<>(Comparator.comparingInt(Job::getRequestTime));
 
-		List<Job> jobList = Arrays.stream(jobs)
-			.map(Job::new)
-			.sorted((near,next)->{
-				if (near.getJobRunning() == next.getJobRunning()){
-					return near.getRequestTime() - next.getRequestTime();
+		Arrays.stream(jobs).forEach((job)-> run.offer(new Job(job)));
+
+		while (!run.isEmpty() || !wait.isEmpty()) {
+			int remainJob = run.size();
+			Job peekJob = null;
+			while (!run.isEmpty()) {
+				Job job = run.poll();
+				if( currentTime < job.getRequestTime()) {
+					wait.offer(job);
+				}else {
+					peekJob = job;
+					break;
 				}
-				return near.getJobRunning() - next.getJobRunning();
-			})
-			.collect(Collectors.toList());
-
-		PriorityQueue<Job> priorityQueue = new PriorityQueue<>();
-		jobList.forEach(priorityQueue::offer);
-
-
-		while (priorityQueue.size() != 0) {
-			Job job = priorityQueue.poll();
-			if( currentTime < job.getRequestTime()) {
-				priorityQueue.offer(job);
-			} else {
-				runTime += currentTime - job.getRequestTime() + job.getJobRunning();
-				currentTime += job.getJobRunning();
 			}
+			if (remainJob == wait.size()) {
+				Job waitJob = wait.poll();
+				if(currentTime < waitJob.getRequestTime()) {
+					currentTime = waitJob.getRequestTime();
+				}
+				peekJob = waitJob;
+			}
+			runTime += currentTime - peekJob.getRequestTime() + peekJob.getJobRunning();
+			currentTime += peekJob.getJobRunning();
+			run.addAll(wait);
+			wait.clear();
 		}
-
-		System.out.println("runTime = " + runTime);
-
 
 		return runTime / jobSize;
 	}
