@@ -1,7 +1,8 @@
+package heap;
 
 import static org.assertj.core.api.Assertions.*;
 
-import org.junit.jupiter.api.Assertions;
+import heap.MoreHot;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
