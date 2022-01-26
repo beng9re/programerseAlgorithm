@@ -3,7 +3,6 @@ package exhaustiveSearch.Carpet;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
 
 
@@ -93,12 +92,10 @@ public class 단체사진찍기 {
 				}
 				ck = true;
 			}
-
 			if (ck) {
 				count++;
 			}
-
-			return; 
+			return;
 		}
 
 		for (int i = startIdx; i < length; i++) {
